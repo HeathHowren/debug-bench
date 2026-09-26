@@ -288,7 +288,7 @@ Outcome checkOutputDebugString(const SystemProbe& p) {
 // Detects: a large RDTSC gap across a tiny workload, left by stepping or a slow
 // virtual time source. False positives: this is the soft class; a scheduler
 // preemption, a busy machine or a VM can trip it with no debugger. Neutralized:
-// the debugger patches RDTSC, or a plugin normalises the counter.
+// the debugger patches RDTSC, or a plugin normalizes the counter.
 Outcome checkRdtsc(const SystemProbe& p) {
     const std::uint64_t delta = p.rdtscDelta();
     return {decide::deltaOverThreshold(delta, threshold::kRdtsc), "RDTSC delta = " + std::to_string(delta) + " cycles"};

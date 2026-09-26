@@ -18,7 +18,7 @@ and watch the checks that used to fire go quiet. It does not touch any other
 process and it changes nothing on the system.
 
 debug-bench is written by Heath Howren
-([Cyborg Elf](https://www.youtube.com/c/cyborgelf)) of
+([Cyborg Elf](https://www.youtube.com/cyborgelf)) of
 [Game Reversal Club](https://gamereversal.club) as a companion to
 [*The Game Hacker's Handbook*](https://gamereversal.club/books/game-hackers-handbook/),
 whose chapters on anti-debugging list these techniques. It is a small, scriptable
@@ -175,9 +175,12 @@ Attach a debugger and watch the results change:
 debug-bench.exe --loop 1000
 ```
 
-Then attach your debugger, or run debug-bench from inside one, and the API, PEB,
-exception and context checks begin to fire. Turn on a debugger-hiding plugin and
-watch them go clean again.
+Then attach your debugger, or run debug-bench from inside one. Which checks fire
+depends on the debugger and on when it attached. With plain x64dbg attached to
+the running process, the API checks, `peb.beingdebugged` and
+`exception.closehandle` fire. The heap and global-flag checks fire only when the
+process starts under the debugger. See [Under x64dbg](#under-x64dbg) for the
+full results. Turn on a debugger-hiding plugin and watch them go clean again.
 
 ## Usage
 
@@ -225,8 +228,9 @@ The decision logic behind each check is separated from the operating system.
 Every OS reading sits behind an interface, so the pure "is this reading a
 debugger?" logic is unit-tested against fabricated clean and debugger-present
 readings, with no debugger, no Administrator and no target process. The tests
-run in both a 64-bit and a 32-bit test binary. Behavior under a real debugger is
-covered by those tests and by the documented per-check design.
+run in both a 64-bit and a 32-bit test binary. They never run a real debugger.
+The results in [Under x64dbg](#under-x64dbg) come from a manual run, not from
+the test suite.
 
 To produce the release zip:
 
