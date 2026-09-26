@@ -34,3 +34,5 @@ The first release.
   against fabricated clean and debugger-present readings with no debugger.
 - **x64 and Win32 executables** built from one configure, with the C runtime
   linked statically.
+
+[1.0.0]: https://github.com/HeathHowren/debug-bench/releases/tag/v1.0.0
