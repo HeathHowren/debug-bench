@@ -1,0 +1,17 @@
+#ifndef DBENCH_VERSION_H
+#define DBENCH_VERSION_H
+
+/* Generated from resources/Version.h.in by CMake configure_file. Do not edit. */
+
+#define DBENCH_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define DBENCH_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define DBENCH_VERSION_PATCH @PROJECT_VERSION_PATCH@
+
+#define DBENCH_VERSION_STRING "@PROJECT_VERSION@"
+#define DBENCH_PRODUCT_NAME   "Debug Bench"
+#define DBENCH_COMPANY_NAME   "Game Reversal Club"
+#define DBENCH_COPYRIGHT      "Copyright (c) 2026 Heath Howren. MIT License."
+#define DBENCH_REPO_URL       "https://github.com/HeathHowren/debug-bench"
+#define DBENCH_HOME_URL       "https://gamereversal.club/tools/debug-bench/"
+
+#endif /* DBENCH_VERSION_H */
