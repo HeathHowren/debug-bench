@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  DEPS_CACHE_VERSION: v1
+
+jobs:
+  build:
+    name: Build and test (${{ matrix.config }})
+    # Pinned, not windows-latest: the generator below names a specific Visual
+    # Studio, and a runner-image roll forward would remove it.
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Debug, Release]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # tests/CMakeLists.txt pins Catch2. Hashing both CMake files means a
+      # bumped pin cannot restore a stale dependency tree.
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: deps-${{ env.DEPS_CACHE_VERSION }}-${{ matrix.config }}-${{ hashFiles('CMakeLists.txt', 'tests/CMakeLists.txt') }}
+          restore-keys: |
+            deps-${{ env.DEPS_CACHE_VERSION }}-${{ matrix.config }}-
+
+      - name: Configure
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+
+      # Builds the 64-bit executable and tests, and through ExternalProject the
+      # 32-bit executable and tests.
+      - name: Build
+        run: cmake --build build --config ${{ matrix.config }}
+
+      - name: Test
+        run: ctest --test-dir build -C ${{ matrix.config }} --output-on-failure
+
+      - name: Package
+        if: matrix.config == 'Release'
+        run: cpack --config build/CPackConfig.cmake -C Release -B build/package
+
+      - name: Upload artifact
+        if: matrix.config == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-bench
+          path: build/package/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Attach build to release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: debug-bench
+          path: dist
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          body: |
+            The zip holds the 64-bit and 32-bit executables in `release\x64`
+            and `release\x32`, plus the license, notices and changelog.
+
+            The binaries are **unsigned**. Antivirus software may flag a program
+            that reads its own PEB and raises breakpoints; build from source if
+            you would rather not take a binary on trust. Nothing here needs
+            Administrator.
+
+            See CHANGELOG.md for what is new and THIRD_PARTY_NOTICES.md for
+            licensing (debug-bench is MIT).
